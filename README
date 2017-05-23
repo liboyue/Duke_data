@@ -1,3 +1,8 @@
 Place both python scripts in the highest-level directory of the data.
-
 Run: python3 <script>
+
+Useful data:
+------------
+sqlViews: daily_Symptoms, mRNASeqTotalCountsDuke, mRNASeqTotalCountsFtDuke, shedding, steroid, p180FIA
+
+E4/physio: HR, EDA, BVP, TEMP
