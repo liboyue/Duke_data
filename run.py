@@ -159,7 +159,7 @@ def merge(data):
         tmp[key] = pd.DataFrame(data[key]['data'], columns = data[key]['labels'])
 
     ans = tmp['ACC']
-    for key in ['BVP', 'EDA', 'HR', 'TEMP']:
+    for key in ['IBI', 'BVP', 'EDA', 'HR', 'TEMP']:
         ans = tmp[key].merge(ans, how='right', on='timestamp')
 
     return ans
@@ -167,12 +167,12 @@ def merge(data):
 
 if __name__ == '__main__':
 
-    for ind in ['HRV15-002', 'HRV15-003', 'HRV15-004', 'HRV15-005', 'HRV15-006', 'HRV15-007', 'HRV15-008', 'HRV15-009', 'HRV15-011', 'HRV15-012', 'HRV15-013', 'HRV15-014', 'HRV15-015', 'HRV15-017', 'HRV15-018', 'HRV15-019', 'HRV15-020', 'HRV15-021', 'HRV15-022', 'HRV15-023', 'HRV15-024']:
+    for ind in ['HRV15-003', 'HRV15-004', 'HRV15-005', 'HRV15-006', 'HRV15-007', 'HRV15-008', 'HRV15-009', 'HRV15-011', 'HRV15-012', 'HRV15-013', 'HRV15-014', 'HRV15-015', 'HRV15-017', 'HRV15-018', 'HRV15-019', 'HRV15-020', 'HRV15-021', 'HRV15-022', 'HRV15-023', 'HRV15-024']:
         # FINALLY...
         data = load_data_from_ind(ind)
         # WE HAVE THE DATA!
 
         # NOTE: We throw away tags since we don't know what to do with it now
         data = merge(data)
-        data.to_csv(ind + '.csv')
+        data.to_csv(ind + '.csv', index = False)
 
