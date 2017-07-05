@@ -146,10 +146,6 @@ def load_data_from_ind(ind, process = ave_by_time(), raw = False):
         return data
 
 
-def plot(tmp):
-    plt.plot(tmp[:, -1])
-    plt.show()
-
 
 def merge(data):
     '''Transform to Pandas dataframe.'''
@@ -165,14 +161,162 @@ def merge(data):
     return ans
 
 
-if __name__ == '__main__':
+ind_list = ['HRV15-002', 'HRV15-003', 'HRV15-004', 'HRV15-005', 'HRV15-006', 
+        'HRV15-007', 'HRV15-008', 'HRV15-009', 'HRV15-011', 'HRV15-012',
+        'HRV15-013', 'HRV15-017', 'HRV15-018', 'HRV15-019',
+        'HRV15-020', 'HRV15-021', 'HRV15-022', 'HRV15-023', 'HRV15-024']
 
-    for ind in ['HRV15-002', 'HRV15-003', 'HRV15-004', 'HRV15-005', 'HRV15-006', 'HRV15-007', 'HRV15-008', 'HRV15-009', 'HRV15-011', 'HRV15-012', 'HRV15-013', 'HRV15-014', 'HRV15-015', 'HRV15-017', 'HRV15-018', 'HRV15-019', 'HRV15-020', 'HRV15-021', 'HRV15-022', 'HRV15-023', 'HRV15-024']:
-        # FINALLY...
-        data = load_data_from_ind(ind)
-        # WE HAVE THE DATA!
 
-        # NOTE: We throw away tags since we don't know what to do with it now
-        data = merge(data)
-        data.to_csv(ind + '.csv', index = False)
+
+for ind in ind_list:
+    # FINALLY...
+    data = load_data_from_ind(ind)
+    # WE HAVE THE SENSOR DATA!
+
+    # NOTE: We throw away tags since we don't know what to do with it now
+    data = merge(data)
+    data.to_csv('compressed_data/' + ind + '.csv', index = False)
+
+
+start_times = []
+for ind in ind_list:
+    # FINALLY...
+    data = pd.read_csv('compressed_data/' + ind + '.csv')
+    start_times.append(data[data.index == 0].timestamp.values[0])
+
+start_time = max(start_times)
+
+for ind in ind_list:
+    data = pd.read_csv('compressed_data/' + ind + '.csv')
+    data[data.timestamp >= start_time].to_csv('data/physiolog/' + ind + '.csv', index = False)
+
+
+
+
+
+
+# Shedding over time
+shedding = pd.read_table('dataExportForRelease/sqlViews/vw_shedding_release.txt')
+
+shedding2int = {
+        'Neg.': -1,
+        'Positive': 1,
+        'WILD': 0
+        }
+
+day2int = {
+        'DayMinus4':-4,
+        'DayMinus3':-3,
+        'DayMinus2':-2,
+        'DayMinus1':-1,
+        'Day0':0,
+        'Day1':1,
+        'Day2':2,
+        'Day3':3,
+        'Day4':4,
+        }
+
+tod2int = {
+        'AM': 0,
+        'PM1': 1,
+        'PM2': 2,
+        }
+
+shedding.sheddingCall = shedding.sheddingCall.apply(lambda x: shedding2int[x])
+shedding.studyDay = shedding.studyDay.apply(lambda x: day2int[x])
+shedding = shedding[['studyDate', 'studyDay', 'sheddingCall']]
+
+for ind in ind_list:
+    shedding[shedding.subject_id == ind][['studyDate', 'studyDay', 'sheddingCall']].to_csv('data/shedding/' + ind + '.csv', index = False)
+
+
+# Symptoms over time
+daily_symptoms = pd.read_table('dataExportForRelease/sqlViews/vw_dailySymptoms_release.txt')
+daily_symptoms.studyDay = daily_symptoms.studyDay.apply(lambda x: day2int[x])
+daily_symptoms.tod = daily_symptoms.tod.apply(lambda x: tod2int[x])
+daily_symptoms['label'] = daily_symptoms.sx_total > daily_symptoms.sx_total.mean()
+
+for ind in ind_list:
+    daily_symptoms[daily_symptoms.subject_id == ind][['studyDate', 'studyTime', 'studyDay', 'tod', 'sx_total', 'label']].to_csv('data/symptoms/' + ind + '.csv', index = False)
+
+time.loc[(time.subject_id == row.subject_id) & (time.studyDay == row.studyDay) & (time.tod == row.tod)]
+
+
+# Shedding over time
+shedding['studyDate'] = 0
+shedding['studyTime'] = 0
+
+for index, row in shedding.iterrows():
+    shedding.set_value(index, 'studyDate', 100)
+    row['studyDate'] = 10
+    time[time.subject_id == row.subject_id]
+    row['studyTime']
+
+# Time and data mapping
+time = daily_symptoms[['subject_id', 'studyDate', 'studyTime', 'studyDay', 'tod']]
+
+
+# process gene data
+day2int = {
+        'DayMinus4':-4,
+        'DayMinus3':-3,
+        'DayMinus2':-2,
+        'DayMinus1':-1,
+        'Day0':0,
+        'Day1':1,
+        'Day2':2,
+        'Day3':3,
+        'Day4':4,
+        }
+
+tod2int = {
+        'AM': 0,
+        'PM1': 1,
+        'PM2': 2,
+        }
+
+
+gene_list = ['RSAD2', 'IFI44L', 'LAMP3', 'SERPING1', 'IFI44', 'IFIT1', 'IFI44', 'ISG15', 'SIGLEC1', 'OAS3', 'HERC5', 'LOC727996', 'IFIT3', 'IFI6', 'OASL', 'IFI27', 'ATF3', 'MX1', 'OAS1', 'OAS1', 'LOC26010', 'XAF1', 'OAS', 'IFIT2', 'OAS2', 'LY6E', '210657_s_at', 'DDX58', 'TNFAIP6', 'RTP4']
+
+
+gene = pd.read_table('dataExportForRelease/sqlViews/vw_mRNASeqTotalCountsFtDetrick_release.txt')
+gene = gene[gene.FirstColumn.isin(gene_list)]
+keys = pd.read_table('dataExportForRelease/sqlViews/vw_mRNASeqKeyFtDetrick_release.txt')
+
+
+#gene[['FirstColumn'] + list(t[1]['sample_id'])]
+cols = ['studyDay', 'tod'] + list(gene['FirstColumn'])
+
+
+# Reorganize gene data
+ans = {}
+for k, v in keys.groupby(keys.subject_id):
+    #print(t)
+    data = []
+    for _, x in v[['sample_id', 'studyDay', 'tod']].iterrows():
+        if x['studyDay'] != 'FollowUp':
+            data.append([day2int[x['studyDay']], tod2int[x['tod']]] + list(gene[x['sample_id']]))
+    ans[k] = pd.DataFrame(data=data, columns=cols)
+
+
+# Add empty rows for missing data
+def add_empty_rows(data):
+    data['time'] = data.studyDay * 3 + data.tod
+    data = data.sort_values('time')
+    times = data.time.values.tolist()
+    append_list = []
+    for i in range(len(times)-1):
+        if times[i+1] - times[i] > 1:
+            for j in range(times[i]+1, times[i+1]):
+                tod = int(j % 3)
+                day = int((j - tod) / 3)
+                append_list.append(pd.Series([day, tod] + [np.NaN]*(len(gene.columns)-3) + [j], index=data.columns))
+    for x in append_list:
+        data = data.append(x, ignore_index=True)
+    data = data.sort_values('time')
+    del data['time']
+    return data
+
+for ind in ind_list:
+    add_empty_rows(ans[ind]).to_csv('data/gene/' + ind + '.csv', index = False)
 

@@ -1,8 +1,7 @@
-Place both python scripts in the highest-level directory of the data.
-Run: python3 <script>
+#Instruction
 
-Useful data:
-------------
-sqlViews: daily_Symptoms, mRNASeqTotalCountsDuke, mRNASeqTotalCountsFtDuke, shedding, steroid, p180FIA
-
-E4/physio: HR, EDA, BVP, TEMP
+- compressed_data contains physiology data compressed by every 30 mins.
+- data/gene contains several useful RNA data.
+- data/physiolog contails physiology which all started from the same timepoints.
+- data/shedding contains shedding results. Sheddingcall has three possible vaues, -1 means negative, 0 means wild, 1 means positive.
+- data/symptoms contains symptoms data. sx\_total is the total symptoms score, label is True if sx\_total > mean(sx\_total).
