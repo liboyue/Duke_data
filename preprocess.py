@@ -192,12 +192,7 @@ for ind in ind_list:
 
 
 
-
-
-
 # Shedding over time
-shedding = pd.read_table('dataExportForRelease/sqlViews/vw_shedding_release.txt')
-
 shedding2int = {
         'Neg.': -1,
         'Positive': 1,
@@ -222,6 +217,7 @@ tod2int = {
         'PM2': 2,
         }
 
+shedding = pd.read_table('dataExportForRelease/sqlViews/vw_shedding_release.txt')
 shedding.sheddingCall = shedding.sheddingCall.apply(lambda x: shedding2int[x])
 shedding.studyDay = shedding.studyDay.apply(lambda x: day2int[x])
 shedding = shedding[['studyDate', 'studyDay', 'sheddingCall']]
@@ -235,47 +231,20 @@ daily_symptoms = pd.read_table('dataExportForRelease/sqlViews/vw_dailySymptoms_r
 daily_symptoms.studyDay = daily_symptoms.studyDay.apply(lambda x: day2int[x])
 daily_symptoms.tod = daily_symptoms.tod.apply(lambda x: tod2int[x])
 daily_symptoms['label'] = daily_symptoms.sx_total > daily_symptoms.sx_total.mean()
+daily_symptoms = daily_symptoms.sort_values('studyDate')
 
 for ind in ind_list:
-    daily_symptoms[daily_symptoms.subject_id == ind][['studyDate', 'studyTime', 'studyDay', 'tod', 'sx_total', 'label']].to_csv('data/symptoms/' + ind + '.csv', index = False)
+    tmp = daily_symptoms[daily_symptoms.subject_id == ind]
+    tmp = tmp[['studyDate', 'studyTime', 'studyDay', 'tod', 'sx_total', 'label']]
+    tmp = add_empty_rows(tmp)
+    tmp.to_csv('data/symptoms/' + ind + '.csv', index = False)
 
-time.loc[(time.subject_id == row.subject_id) & (time.studyDay == row.studyDay) & (time.tod == row.tod)]
-
-
-# Shedding over time
-shedding['studyDate'] = 0
-shedding['studyTime'] = 0
-
-for index, row in shedding.iterrows():
-    shedding.set_value(index, 'studyDate', 100)
-    row['studyDate'] = 10
-    time[time.subject_id == row.subject_id]
-    row['studyTime']
 
 # Time and data mapping
 time = daily_symptoms[['subject_id', 'studyDate', 'studyTime', 'studyDay', 'tod']]
 
 
 # process gene data
-day2int = {
-        'DayMinus4':-4,
-        'DayMinus3':-3,
-        'DayMinus2':-2,
-        'DayMinus1':-1,
-        'Day0':0,
-        'Day1':1,
-        'Day2':2,
-        'Day3':3,
-        'Day4':4,
-        }
-
-tod2int = {
-        'AM': 0,
-        'PM1': 1,
-        'PM2': 2,
-        }
-
-
 gene_list = ['RSAD2', 'IFI44L', 'LAMP3', 'SERPING1', 'IFI44', 'IFIT1', 'IFI44', 'ISG15', 'SIGLEC1', 'OAS3', 'HERC5', 'LOC727996', 'IFIT3', 'IFI6', 'OASL', 'IFI27', 'ATF3', 'MX1', 'OAS1', 'OAS1', 'LOC26010', 'XAF1', 'OAS', 'IFIT2', 'OAS2', 'LY6E', '210657_s_at', 'DDX58', 'TNFAIP6', 'RTP4']
 
 
@@ -310,7 +279,11 @@ def add_empty_rows(data):
             for j in range(times[i]+1, times[i+1]):
                 tod = int(j % 3)
                 day = int((j - tod) / 3)
-                append_list.append(pd.Series([day, tod] + [np.NaN]*(len(gene.columns)-3) + [j], index=data.columns))
+                tmp = {k: np.NaN for k in data.columns}
+                tmp['studyDay'] = day
+                tmp['tod'] = tod
+                tmp['time'] = j
+                append_list.append(tmp)
     for x in append_list:
         data = data.append(x, ignore_index=True)
     data = data.sort_values('time')
